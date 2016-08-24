@@ -9,24 +9,18 @@ namespace WinTail
     {
         private readonly string filePath;
 
-        private readonly Stream fileStream;
-
-        private readonly StreamReader fileStreamReader;
-
-        private readonly FileObserver observer;
-
         private readonly IActorRef reporterActor;
+
+        private Stream fileStream;
+
+        private StreamReader fileStreamReader;
+
+        private FileObserver observer;
 
         public TailActor(IActorRef reporterActor, string filePath)
         {
             this.reporterActor = reporterActor;
             this.filePath = filePath;
-            observer = new FileObserver(Self, Path.GetFullPath(filePath));
-            observer.Start();
-            fileStream = new FileStream(Path.GetFullPath(filePath), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            fileStreamReader = new StreamReader(fileStream, Encoding.UTF8);
-            var text = fileStreamReader.ReadToEnd();
-            Self.Tell(new InitialRead(filePath, text));
         }
 
         protected override void OnReceive(object message)
@@ -34,7 +28,7 @@ namespace WinTail
             if (message is FileWrite)
             {
                 var text = fileStreamReader.ReadToEnd();
-                if (!String.IsNullOrEmpty(text))
+                if (!string.IsNullOrEmpty(text))
                 {
                     reporterActor.Tell(text);
                 }
@@ -49,6 +43,22 @@ namespace WinTail
                 var ir = (InitialRead)message;
                 reporterActor.Tell(ir.Text);
             }
+        }
+
+        protected override void PostStop()
+        {
+            observer.Dispose();
+            fileStreamReader.Dispose();
+        }
+
+        protected override void PreStart()
+        {
+            observer = new FileObserver(Self, Path.GetFullPath(filePath));
+            observer.Start();
+            fileStream = new FileStream(Path.GetFullPath(filePath), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            fileStreamReader = new StreamReader(fileStream, Encoding.UTF8);
+            var text = fileStreamReader.ReadToEnd();
+            Self.Tell(new InitialRead(filePath, text));
         }
 
         public class FileError
