@@ -9,13 +9,6 @@ namespace WinTail
 
         public const string StartCommand = "start";
 
-        private readonly IActorRef validationActor;
-
-        public ConsoleReaderActor(IActorRef validationActor)
-        {
-            this.validationActor = validationActor;
-        }
-
         protected override void OnReceive(object message)
         {
             if (message.Equals(StartCommand))
@@ -24,7 +17,7 @@ namespace WinTail
             }
             else if (message is Messages.InputError)
             {
-                validationActor.Tell((Messages.InputError)message);
+                Context.ActorSelection("akka://MyActorSystem/user/validationActor").Tell((Messages.InputError)message);
             }
 
             GetAndValidateInput();
@@ -44,7 +37,7 @@ namespace WinTail
                 return;
             }
 
-            validationActor.Tell(message);
+            Context.ActorSelection("akka://MyActorSystem/user/validationActor").Tell(message);
         }
     }
 }
