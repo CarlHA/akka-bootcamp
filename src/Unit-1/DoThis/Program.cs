@@ -2,8 +2,7 @@
 
 namespace WinTail
 {
-    #region Program
-    class Program
+    internal class Program
     {
         public static ActorSystem MyActorSystem;
 
@@ -12,18 +11,15 @@ namespace WinTail
             // initialize MyActorSystem
             MyActorSystem = ActorSystem.Create("MyActorSystem");
 
-            // time to make your first actors!
-            //YOU NEED TO FILL IN HERE
-            // make consoleWriterActor using these props: Props.Create(() => new ConsoleWriterActor())
-            // make consoleReaderActor using these props: Props.Create(() => new ConsoleReaderActor(consoleWriterActor))
-
+            // time to make your actors!
             var consoleWriterProps = Props.Create<ConsoleWriterActor>();
             var consoleWriterActor = MyActorSystem.ActorOf(consoleWriterProps, "consoleWriterActor");
-            var validationActorProps = Props.Create(()=> new ValidationActor(consoleWriterActor));
+            var tailCoordinatorProps = Props.Create<TailCoordinatorActor>();
+            var tailCoordinatorActor = MyActorSystem.ActorOf(tailCoordinatorProps, "tailCoordinatorActor");
+            var validationActorProps = Props.Create(()=> new FileValidatorActor(consoleWriterActor, tailCoordinatorActor));
             var validationActor = MyActorSystem.ActorOf(validationActorProps, "validationActor");
             var consoleReaderProps = Props.Create<ConsoleReaderActor>(validationActor);
             var consoleReaderActor = MyActorSystem.ActorOf(consoleReaderProps, "consoleReaderActor");
-
 
             // tell console reader to begin
             consoleReaderActor.Tell(ConsoleReaderActor.StartCommand);
@@ -31,7 +27,5 @@ namespace WinTail
             // blocks the main thread from exiting until the actor system is shut down
             MyActorSystem.WhenTerminated.Wait();
         }
-
     }
-    #endregion
 }

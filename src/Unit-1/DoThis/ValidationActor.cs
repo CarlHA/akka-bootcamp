@@ -3,7 +3,7 @@ using Akka.Actor;
 
 namespace WinTail
 {
-    public class ValidationActor : UntypedActor
+    internal class ValidationActor : UntypedActor
     {
         private readonly IActorRef _consoleWriterActor;
 
