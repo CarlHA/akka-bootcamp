@@ -1,9 +1,9 @@
-﻿using System;
 using System.IO;
 using System.Text;
 using Akka.Actor;
+using WinTail.Messages;
 
-namespace WinTail
+namespace WinTail.Actors
 {
     internal class TailActor : UntypedActor
     {
@@ -59,42 +59,6 @@ namespace WinTail
             fileStreamReader = new StreamReader(fileStream, Encoding.UTF8);
             var text = fileStreamReader.ReadToEnd();
             Self.Tell(new InitialRead(filePath, text));
-        }
-
-        public class FileError
-        {
-            public FileError(string fileName, string reason)
-            {
-                FileName = fileName;
-                Reason = reason;
-            }
-
-            public string FileName { get; }
-
-            public string Reason { get; }
-        }
-
-        public class FileWrite
-        {
-            public FileWrite(string fileName)
-            {
-                FileName = fileName;
-            }
-
-            public string FileName { get; }
-        }
-
-        public class InitialRead
-        {
-            public InitialRead(string fileName, string text)
-            {
-                FileName = fileName;
-                Text = text;
-            }
-
-            public string FileName { get; }
-
-            public string Text { get; }
         }
     }
 }

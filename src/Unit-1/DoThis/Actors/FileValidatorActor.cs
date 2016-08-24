@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.IO;
 using Akka.Actor;
+using WinTail.Messages;
 
-namespace WinTail
+namespace WinTail.Actors
 {
     internal class FileValidatorActor : UntypedActor
     {
@@ -18,22 +19,22 @@ namespace WinTail
             var msg = message as string;
             if (String.IsNullOrEmpty(msg))
             {
-                consoleWriterActor.Tell(new Messages.NullInputError("Input was blank. Please try again.\n"));
-                Sender.Tell(new Messages.ContinueProcessing());
+                consoleWriterActor.Tell(new NullInputError("Input was blank. Please try again.\n"));
+                Sender.Tell(new ContinueProcessing());
             }
             else
             {
                 var valid = IsFileUrl(msg);
                 if (valid)
                 {
-                    consoleWriterActor.Tell(new Messages.InputSuccess($"Starting processing for {msg}"));
+                    consoleWriterActor.Tell(new InputSuccess($"Starting processing for {msg}"));
                     Context.ActorSelection("akka://MyActorSystem/user/tailCoordinatorActor")
-                           .Tell(new TailCoordinatorActor.StartTail(msg, consoleWriterActor));
+                           .Tell(new StartTail(msg, consoleWriterActor));
                 }
                 else
                 {
-                    consoleWriterActor.Tell(new Messages.ValidationError($"{msg} is not an existing URI on disk"));
-                    Sender.Tell(new Messages.ContinueProcessing());
+                    consoleWriterActor.Tell(new ValidationError($"{msg} is not an existing URI on disk"));
+                    Sender.Tell(new ContinueProcessing());
                 }
             }
         }

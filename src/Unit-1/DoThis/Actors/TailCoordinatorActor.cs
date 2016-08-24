@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using Akka.Actor;
+using WinTail.Messages;
 
-namespace WinTail
+namespace WinTail.Actors
 {
     internal class TailCoordinatorActor : UntypedActor
     {
@@ -34,29 +35,6 @@ namespace WinTail
                             return Directive.Restart;
                         }
                     });
-        }
-
-        public class StartTail
-        {
-            public StartTail(string filePath, IActorRef reporterActor)
-            {
-                FilePath = filePath;
-                ReporterActor = reporterActor;
-            }
-
-            public string FilePath { get; }
-
-            public IActorRef ReporterActor { get; }
-        }
-
-        public class StopTail
-        {
-            public string FilePath { get; }
-
-            public StopTail(string filePath)
-            {
-                FilePath = filePath;
-            }
         }
     }
 }

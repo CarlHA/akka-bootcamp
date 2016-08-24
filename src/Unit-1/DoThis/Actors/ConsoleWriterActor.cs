@@ -1,20 +1,21 @@
 ﻿using System;
 using Akka.Actor;
+using WinTail.Messages;
 
-namespace WinTail
+namespace WinTail.Actors
 {
     internal class ConsoleWriterActor : UntypedActor
     {
         protected override void OnReceive(object message)
         {
-            if (message is Messages.InputError)
+            if (message is InputError)
             {
-                var msg = (Messages.InputError)message;
+                var msg = (InputError)message;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(msg.Reason);
-            }else if (message is Messages.InputSuccess)
+            }else if (message is InputSuccess)
             {
-                var msg = (Messages.InputSuccess)message;
+                var msg = (InputSuccess)message;
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine(msg.Reason);
             }

@@ -1,7 +1,8 @@
 using System;
 using Akka.Actor;
+using WinTail.Messages;
 
-namespace WinTail
+namespace WinTail.Actors
 {
     internal class ConsoleReaderActor : UntypedActor
     {
@@ -15,9 +16,9 @@ namespace WinTail
             {
                 DoPrintInstructions();
             }
-            else if (message is Messages.InputError)
+            else if (message is InputError)
             {
-                Context.ActorSelection("akka://MyActorSystem/user/validationActor").Tell((Messages.InputError)message);
+                Context.ActorSelection("akka://MyActorSystem/user/validationActor").Tell((InputError)message);
             }
 
             GetAndValidateInput();

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Akka.Actor;
+using WinTail.Messages;
 
 namespace WinTail
 {
@@ -32,14 +33,14 @@ namespace WinTail
 
         private void OnFileError(object sender, ErrorEventArgs e)
         {
-            tailActor.Tell(new TailActor.FileError(fileNameOnly, e.GetException().Message), ActorRefs.NoSender);
+            tailActor.Tell(new FileError(fileNameOnly, e.GetException().Message), ActorRefs.NoSender);
         }
 
         private void OnFileChanged(object sender, FileSystemEventArgs e)
         {
             if (e.ChangeType == WatcherChangeTypes.Changed)
             {
-                tailActor.Tell(new TailActor.FileWrite(e.Name), ActorRefs.NoSender);
+                tailActor.Tell(new FileWrite(e.Name), ActorRefs.NoSender);
             }
         }
 
