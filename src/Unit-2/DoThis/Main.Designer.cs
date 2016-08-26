@@ -32,6 +32,7 @@
             System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.sysChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.AddSeriesButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.sysChart)).BeginInit();
             this.SuspendLayout();
             // 
@@ -52,11 +53,22 @@
             this.sysChart.TabIndex = 0;
             this.sysChart.Text = "sysChart";
             // 
+            // AddSeriesButton
+            // 
+            this.AddSeriesButton.Location = new System.Drawing.Point(585, 384);
+            this.AddSeriesButton.Name = "AddSeriesButton";
+            this.AddSeriesButton.Size = new System.Drawing.Size(75, 23);
+            this.AddSeriesButton.TabIndex = 1;
+            this.AddSeriesButton.Text = "Add Series";
+            this.AddSeriesButton.UseVisualStyleBackColor = true;
+            this.AddSeriesButton.Click += new System.EventHandler(this.AddSeriesButton_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(684, 446);
+            this.Controls.Add(this.AddSeriesButton);
             this.Controls.Add(this.sysChart);
             this.Name = "Main";
             this.Text = "System Metrics";
@@ -70,6 +82,7 @@
         #endregion
 
         private System.Windows.Forms.DataVisualization.Charting.Chart sysChart;
+        private System.Windows.Forms.Button AddSeriesButton;
     }
 }
 
