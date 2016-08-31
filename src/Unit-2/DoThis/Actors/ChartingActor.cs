@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using Akka.Actor;
+using ChartApp.Messages;
 
 namespace ChartApp.Actors
 {
@@ -11,61 +12,23 @@ namespace ChartApp.Actors
     {
         public const int MaxPoints = 250;
 
-        #region Messages
-
-        public class InitializeChart
-        {
-            public InitializeChart(Dictionary<string, Series> initialSeries)
-            {
-                InitialSeries = initialSeries;
-            }
-
-            public Dictionary<string, Series> InitialSeries { get; }
-        }
-
-        public class AddSeries
-        {
-            public Series Series { get; }
-
-            public AddSeries(Series series)
-            {
-                Series = series;
-            }
-        }
-
-        public class RemoveSeries
-        {
-            public string SeriesName { get; }
-
-            public RemoveSeries(string seriesName)
-            {
-                SeriesName = seriesName;
-            }
-        }
-
-        public class TogglePause
-        {
-        }
-
-        #endregion
-
         private readonly Chart _chart;
-        private Dictionary<string, Series> _seriesIndex;
-        private int xPosCounter = 0;
 
         private readonly Button _pauseButton;
 
-        public ChartingActor(Chart chart, Button pauseButton) : this(chart, new Dictionary<string, Series>(), pauseButton)
-        {
-        }
+        private Dictionary<string, Series> _seriesIndex;
 
-        public ChartingActor(Chart chart, Dictionary<string, Series> seriesIndex, Button pauseButton)
+        private int xPosCounter = 0;
+
+        public ChartingActor(Chart chart, Button pauseButton)
         {
             _chart = chart;
-            _seriesIndex = seriesIndex;
+            _seriesIndex = new Dictionary<string, Series>();
             _pauseButton = pauseButton;
             Charting();
         }
+
+        public IStash Stash { get; set; }
 
         private void Charting()
         {
@@ -80,46 +43,37 @@ namespace ChartApp.Actors
                 });
         }
 
-        private void Paused()
+        private void HandleAddSeries(AddSeries series)
         {
-            Receive<AddSeries>(addSeries => Stash.Stash());
-            Receive<RemoveSeries>(rs => Stash.Stash());
-            Receive<Metric>(metric => HandleMetricsPaused(metric));
-            Receive<TogglePause>(pause =>
+            if (!string.IsNullOrEmpty(series.Series.Name) && !_seriesIndex.ContainsKey(series.Series.Name))
             {
-                SetPauseButtonText(false);
-                UnbecomeStacked();
-                Stash.UnstashAll();
-            });
+                _seriesIndex.Add(series.Series.Name, series.Series);
+                _chart.Series.Add(series.Series);
+                SetChartBoundaries();
+            }
         }
-
-        private void SetPauseButtonText(bool paused)
-        {
-            _pauseButton.Text = $"{(!paused ? "PAUSE ||" : "RESUME ->")}";
-        }
-
-        #region Individual Message Type Handlers
 
         private void HandleInitialize(InitializeChart ic)
         {
             if (ic.InitialSeries != null)
             {
-                //swap the two series out
+                // swap the two series out
                 _seriesIndex = ic.InitialSeries;
             }
 
-            //delete any existing series
+            // delete any existing series
             _chart.Series.Clear();
             var area = _chart.ChartAreas[0];
             area.AxisX.IntervalType = DateTimeIntervalType.Number;
             area.AxisY.IntervalType = DateTimeIntervalType.Number;
             SetChartBoundaries();
-            //attempt to render the initial chart
+
+            // attempt to render the initial chart
             if (_seriesIndex.Any())
             {
                 foreach (var series in _seriesIndex)
                 {
-                    //force both the chart and the internal index to use the same names
+                    // force both the chart and the internal index to use the same names
                     series.Value.Name = series.Key;
                     _chart.Series.Add(series.Value);
                 }
@@ -128,35 +82,15 @@ namespace ChartApp.Actors
             SetChartBoundaries();
         }
 
-        private void HandleAddSeries(AddSeries series)
-        {
-            if (!String.IsNullOrEmpty(series.Series.Name) && !_seriesIndex.ContainsKey(series.Series.Name))
-            {
-                _seriesIndex.Add(series.Series.Name, series.Series);
-                _chart.Series.Add(series.Series);
-                SetChartBoundaries();
-            }
-        }
-
-        private void HandleRemoveSeries(RemoveSeries series)
-        {
-            if (!String.IsNullOrEmpty(series.SeriesName) && _seriesIndex.ContainsKey(series.SeriesName))
-            {
-                var seriesToRemove = _seriesIndex[series.SeriesName];
-                _seriesIndex.Remove(series.SeriesName);
-                _chart.Series.Remove(seriesToRemove);
-                SetChartBoundaries();
-            }
-        }
-
         private void HandleMetrics(Metric metric)
         {
-            if (!String.IsNullOrEmpty(metric.Series) && _seriesIndex.ContainsKey(metric.Series))
+            if (!string.IsNullOrEmpty(metric.Series) && _seriesIndex.ContainsKey(metric.Series))
             {
                 var series = _seriesIndex[metric.Series];
-                if(series.Points == null)return;
+                if (series.Points == null)
+                    return;
                 series.Points.AddXY(xPosCounter++, metric.CounterValue);
-                while (series.Points.Count>MaxPoints)
+                while (series.Points.Count > MaxPoints)
                 {
                     series.Points.RemoveAt(0);
                 }
@@ -170,6 +104,7 @@ namespace ChartApp.Actors
             if (!string.IsNullOrEmpty(metric.Series) && _seriesIndex.ContainsKey(metric.Series))
             {
                 var series = _seriesIndex[metric.Series];
+
                 // set the Y value to zero when we're paused
                 series.Points.AddXY(xPosCounter++, 0.0d);
                 while (series.Points.Count > MaxPoints)
@@ -181,7 +116,29 @@ namespace ChartApp.Actors
             }
         }
 
-        #endregion
+        private void HandleRemoveSeries(RemoveSeries series)
+        {
+            if (!string.IsNullOrEmpty(series.SeriesName) && _seriesIndex.ContainsKey(series.SeriesName))
+            {
+                var seriesToRemove = _seriesIndex[series.SeriesName];
+                _seriesIndex.Remove(series.SeriesName);
+                _chart.Series.Remove(seriesToRemove);
+                SetChartBoundaries();
+            }
+        }
+
+        private void Paused()
+        {
+            Receive<AddSeries>(addSeries => Stash.Stash());
+            Receive<RemoveSeries>(rs => Stash.Stash());
+            Receive<Metric>(metric => HandleMetricsPaused(metric));
+            Receive<TogglePause>(pause =>
+                {
+                    SetPauseButtonText(false);
+                    UnbecomeStacked();
+                    Stash.UnstashAll();
+                });
+        }
 
         private void SetChartBoundaries()
         {
@@ -208,6 +165,9 @@ namespace ChartApp.Actors
             }
         }
 
-        public IStash Stash { get; set; }
+        private void SetPauseButtonText(bool paused)
+        {
+            _pauseButton.Text = $"{(!paused ? "PAUSE ||" : "RESUME ->")}";
+        }
     }
 }

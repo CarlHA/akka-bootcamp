@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Akka.Actor;
+using ChartApp.Messages;
 
 namespace ChartApp.Actors
 {

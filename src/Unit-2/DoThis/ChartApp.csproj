@@ -61,7 +61,7 @@
   <ItemGroup>
     <Compile Include="Actors\ButtonToggleActor.cs" />
     <Compile Include="Actors\ChartingActor.cs" />
-    <Compile Include="Actors\GatherMetrics.cs" />
+    <Compile Include="Actors\CounterType.cs" />
     <Compile Include="Actors\PerformanceCounterActor.cs" />
     <Compile Include="Actors\PerformanceCounterCoordinatorActor.cs" />
     <Compile Include="Main.cs">
@@ -70,6 +70,17 @@
     <Compile Include="Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
+    <Compile Include="Messages\AddSeries.cs" />
+    <Compile Include="Messages\GatherMetrics.cs" />
+    <Compile Include="Messages\InitializeChart.cs" />
+    <Compile Include="Messages\Metric.cs" />
+    <Compile Include="Messages\RemoveSeries.cs" />
+    <Compile Include="Messages\SubscribeCounter.cs" />
+    <Compile Include="Messages\Toggle.cs" />
+    <Compile Include="Messages\TogglePause.cs" />
+    <Compile Include="Messages\UnsubscribeCounter.cs" />
+    <Compile Include="Messages\UnWatch.cs" />
+    <Compile Include="Messages\Watch.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Main.resx">
@@ -98,6 +109,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

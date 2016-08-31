@@ -1,5 +1,6 @@
 ﻿using System.Windows.Forms;
 using Akka.Actor;
+using ChartApp.Messages;
 
 namespace ChartApp.Actors
 {
@@ -9,11 +10,6 @@ namespace ChartApp.Actors
         private readonly Button _myButton;
         private readonly CounterType _myCounterType;
         private bool _isToggledOn;
-
-        public class Toggle
-        {
-
-        }
 
         public ButtonToggleActor(IActorRef coordinatorActor, Button myButton, CounterType myCounterType, bool isToggledOn = false)
         {
@@ -26,12 +22,12 @@ namespace ChartApp.Actors
         {
             if (message is Toggle && _isToggledOn)
             {
-                _coordinatorActor.Tell(new PerformanceCounterCoordinatorActor.UnWatch(_myCounterType));
+                _coordinatorActor.Tell(new UnWatch(_myCounterType));
                 FlipToggle();
             }
             else if (message is Toggle && !_isToggledOn)
             {
-                _coordinatorActor.Tell(new PerformanceCounterCoordinatorActor.Watch(_myCounterType));
+                _coordinatorActor.Tell(new Watch(_myCounterType));
                 FlipToggle();
             }
             else
